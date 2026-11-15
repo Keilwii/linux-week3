@@ -63,7 +63,11 @@ Errors go to <code>~/status-cron.log</code> (empty so far). The page also refres
 <p><b>Automatic updates:</b> after installing the crontab, the "generated" time on the page went
 09:40:59 (my manual run) &rarr; 09:42:01 &rarr; 09:43:01 &rarr; 09:44:01 (15 Nov 2026, UTC). So cron updated it 3 times by itself.</p>
 
-<p><b>Reboot test:</b> result goes here after I reboot the VM.</p>
+<p><b>Reboot test:</b> rebooted the VM with <code>sudo reboot</code> on 15 Nov 2026 (actually twice, at 09:46 and
+09:49 UTC). I didn't start anything by hand afterwards. The page opened normally, the uptime row showed the new boot
+time and the report kept updating: 09:47:02 &rarr; 09:48:01 after the first reboot, and 09:50:01 &rarr; 09:51:01 &rarr;
+09:52:01 after the second. cron and nginx were both active, and the error log stayed empty. The week 2 page also
+came back up. Test passed.</p>
 
 <h2>Problem I ran into</h2>
 <p>I used <code>mktemp</code> for the temp file, but <code>mktemp</code> creates files with permissions <code>600</code>
