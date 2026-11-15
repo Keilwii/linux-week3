@@ -122,7 +122,7 @@ cat > "$TEMP_FILE" <<EOF
         <h1>Server Status Report</h1>
         <p>Week 3: Linux command line and Bash scripting</p>
         <p>
-            This is my cPouta VM (dev-kalle). The same machine still runs my week 1 page and the
+            This is my Hetzner VM (dev-kalle). The same machine still runs my week 1 page and the
             week 2 visit counter. Below is a status report that a Bash script writes every minute,
             and after that my notes on how I made it and how I tested it.
         </p>
