@@ -1,3 +1,3 @@
 # kalle's crontab: regenerate the status report every minute
 # install with: crontab ~/linux-week3/crontab.txt
-* * * * * /home/kalle/linux-week3/status.sh >/dev/null 2>>/home/kalle/status-cron.log
+* * * * * /home/kalle/linux-week3/report.sh >/dev/null 2>>/home/kalle/status-cron.log
