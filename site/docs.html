@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>week 3 - notes</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>week 3 notes</h1>
+<p class="sub"><a href="./">&larr; back to the status report</a> &middot;
+<a href="https://github.com/Keilwii/linux-week3">GitHub repo</a></p>
+
+<h2>Commands I used</h2>
+
+<pre>date '+%Y-%m-%d %H:%M:%S %Z'</pre>
+<p>Prints the date and time in a format I chose. <code>%Z</code> adds the time zone name. The server runs in UTC.</p>
+
+<pre>uptime -p</pre>
+<p>Uptime in plain words ("up 6 days, 13 hours..."). <code>uptime -s</code> gives the boot time instead.</p>
+
+<pre>df -P / | awk 'NR==2 {gsub("%", "", $5); print $5}'</pre>
+<p><code>df</code> shows the root filesystem usage, and the pipe sends it to <code>awk</code>. awk takes line 2 (line 1 is the
+header), drops the % sign from column 5 and prints just the number. <code>-P</code> keeps the output on one line,
+so the columns are always in the same place.</p>
+
+<pre>free -m | awk '/^Mem:/ {print $2, $7}'</pre>
+<p>RAM in megabytes. awk picks the line starting with "Mem:" and prints total (column 2) and available (column 7).</p>
+
+<pre>crontab -l</pre>
+<p>Shows my crontab, to check the schedule is installed.</p>
+
+<h2>How it works</h2>
+<p><b>Script</b> (<code>status.sh</code>): collects the values with command substitution (<code>$(...)</code>) into variables,
+then writes the html with a heredoc. It writes to a temp file first and then <code>mv</code>s it over
+<code>index.html</code>, so nginx never serves a half-written page. Nginx already serves <code>/var/www/week-1</code> from week 1,
+so writing into <code>/var/www/week-1/viikko3/</code> was enough and I didn't need to change the nginx config.</p>
+
+<p><b>Disk status</b>: the function <code>disk_status</code> takes the usage percentage, and
+<code>if (( pct &gt;= 80 ))</code> prints WARNING, otherwise OK. Running <code>./status.sh --test N</code>
+only prints the status for N, so I could test the logic without touching the real value or filling the disk.</p>
+
+<p><b>Schedule</b>: a user crontab line <code>* * * * * /home/kalle/linux-week3/status.sh</code> runs the script every
+minute. The cron service is enabled in systemd, so it starts on boot and the crontab keeps working after a reboot.
+Errors go to <code>~/status-cron.log</code> (empty so far). The page also refreshes itself every 60 seconds.</p>
+
+<h2>Tests</h2>
+<p><b>Syntax:</b> <code>bash -n status.sh</code> gave no output, so no syntax errors.</p>
+<p><b>Manual run:</b> <code>./status.sh</code> made the page, checked it in the browser and all the values were there.</p>
+
+<p><b>Disk status logic:</b></p>
+<table>
+  <tr><th>Test value</th><td>Expected</td><td>Got</td></tr>
+  <tr><th>50 %</th><td>OK</td><td>OK</td></tr>
+  <tr><th>79 %</th><td>OK</td><td>OK</td></tr>
+  <tr><th>80 %</th><td>WARNING</td><td>WARNING</td></tr>
+  <tr><th>90 %</th><td>WARNING</td><td>WARNING</td></tr>
+  <tr><th>real (3 %)</th><td>OK</td><td>OK</td></tr>
+</table>
+<p>The test values only go in through <code>--test</code>, so the report always uses the real <code>df</code> value.</p>
+
+<p><b>Automatic updates:</b> after installing the crontab, the "generated" time on the page went
+09:40:59 (my manual run) &rarr; 09:42:01 &rarr; 09:43:01 &rarr; 09:44:01 (15 Nov 2026, UTC). So cron updated it 3 times by itself.</p>
+
+<p><b>Reboot test:</b> result goes here after I reboot the VM.</p>
+
+<h2>Problem I ran into</h2>
+<p>I used <code>mktemp</code> for the temp file, but <code>mktemp</code> creates files with permissions <code>600</code>
+(only the owner can read). Nginx runs as www-data, so it can't read a file like that. I tested it with a test file
+made by mktemp: the browser got <b>403 Forbidden</b>, and after <code>chmod 644</code> it loaded fine (200). So the script
+does <code>chmod 644</code> on the temp file before moving it into place. Learned that file permissions matter even when
+the folder itself is readable.</p>
+
+</body>
+</html>
